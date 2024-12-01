@@ -1,0 +1,6 @@
+*settings.yaml
+config/*.yaml
+*.log
+nr
+pri.*
+main

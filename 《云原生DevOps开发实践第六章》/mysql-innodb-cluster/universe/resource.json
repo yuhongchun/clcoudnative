@@ -1,0 +1,72 @@
+{
+  "assets": {
+    "uris": {
+      "jre-tar-gz": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/dcos-commons/openjdk-jre-8u212b03-hotspot-linux-x64.tar.gz",
+      "libmesos-bundle-tar-gz": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/dcos-commons/libmesos-bundle-1.12.0.tar.gz",
+      "bootstrap-zip": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/dcos-commons/bootstrap.zip",
+      "scheduler-zip": "{{artifact-dir}}/dcos-http-mysql-innodb-cluster/operator-scheduler.zip",
+      "mysql-shell-tar-gz":"https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/mysql-shell-8.0.22-linux-glibc2.12-x86-64bit.tar.gz",
+      "mysql-init-uri":"https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/mysql-init.sh",
+      "router-init-uri": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/router-init.sh",
+      "demo-sql-uri": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/demo.sql",
+      "mysql-router-uri":"https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/mysql-router-8.0.21-el7-x86_64.tar.gz",
+      "mysql-shell-uri": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/mysql-shell-8.0.21-1.el7.x86_64.rpm",
+      "mysql-cnf-uri": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/my.cnf",
+      "mysql-xtrabackup-tar-gz": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/percona-xtrabackup-2.4.21-Linux-x86_64.glibc2.12.tar.gz",
+      "mysql-xtrabackup-shell-uri": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/backupself.sh",
+      "mysql-mysqldump-shell-uri": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/backup.sh",
+      "rejoin-shell-uri": "https://example-external-project.oss-cn-hangzhou.aliyuncs.com/dcos-frameworks/mysql-innodb-cluster/rejoin_instance.sh"
+    },
+     "container": {
+      "docker": {
+        "mysql_cluster": "mysql/mysql-server:5.7.33-1.1.19",
+        "mysql_exporter": "prom/mysqld-exporter"
+      }
+    }
+  },
+  "images": {
+    "icon-small": "https://downloads.mesosphere.com/assets/universe/000/mysql-icon-small.png",
+    "icon-medium": "https://downloads.mesosphere.com/assets/universe/000/mysql-icon-medium.png",
+    "icon-large": "https://downloads.mesosphere.com/assets/universe/000/mysql-icon-large.png"
+  },
+  "cli": {
+    "binaries": {
+      "darwin": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli-darwin}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli-darwin"
+        }
+      },
+      "linux": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli-linux}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli-linux"
+        }
+      },
+      "windows": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli.exe}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli.exe"
+        }
+      }
+    }
+  }
+}

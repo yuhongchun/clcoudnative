@@ -1,0 +1,15 @@
+{
+  "packagingVersion": "4.0",
+  "upgradesFrom": ["0.3.17-5.7.25"],
+  "downgradesTo": ["0.3.17-5.7.25"],
+  "minDcosReleaseVersion": "1.9",
+  "name": "innodb-cluster",
+  "version": "0.3.18-5.7.33",
+  "maintainer": "support@linktime.cloud",
+  "description": "MySQL InnoDB cluster with GTID replication setup(1 master, 2 slaves)",
+  "selected": false,
+  "framework": true,
+  "tags": ["0.42.1", "mysql-innodb-cluster"],
+  "postInstallNotes": "DC/OS mysql-innodb-cluster is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
+  "postUninstallNotes": "DC/OS mysql-innodb-cluster is being uninstalled."
+}

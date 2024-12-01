@@ -1,0 +1,47 @@
+[mysqld]
+
+skip-host-cache
+skip-name-resolve
+socket=/var/lib/mysql/mysql.sock
+secure-file-priv=/var/lib/mysql-files
+user=mysql
+
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+max_connections = maxconn
+max_user_connections = maxuserconn
+innodb_buffer_pool_size = buffersizem
+
+datadir=/mnt/mesos/sandbox/MYSQL_DATA
+
+
+server_id=serverid
+gtid_mode=ON
+enforce_gtid_consistency=ON
+binlog_checksum=NONE
+
+log_bin=binlog
+log_slave_updates=ON
+binlog_format=ROW
+expire_logs_days = expiredays
+default-time_zone = '+timehour:00'
+master_info_repository=TABLE
+relay_log_info_repository=TABLE
+
+transaction_write_set_extraction=XXHASH64
+
+loose-group_replication_group_name="5c7975ec-0000-11e9-a8c9-0800273906ff"
+
+loose-group_replication_start_on_boot=off
+
+loose-group_replication_local_address="mysql-INDEX-node.FRAMEWORK_NAME.autoip.dcos.thisdcos.directory:24901"
+
+loose-group_replication_group_seeds="mysql-0-node.FRAMEWORK_NAME.autoip.dcos.thisdcos.directory:24901,mysql-1-node.FRAMEWORK_NAME.autoip.dcos.thisdcos.directory:24901,mysql-2-node.FRAMEWORK_NAME.autoip.dcos.thisdcos.directory:24901"
+loose-group_replication_bootstrap_group=off
+loose-group_replication_ip_whitelist='mysql-0-node.FRAMEWORK_NAME.autoip.dcos.thisdcos.directory,mysql-1-node.FRAMEWORK_NAME.autoip.dcos.thisdcos.directory,mysql-2-node.FRAMEWORK_NAME.autoip.dcos.thisdcos.directory'
+
+loose-group_replication_single_primary_mode = on
+disabled_storage_engines = MyISAM,BLACKHOLE,FEDERATED,CSV,ARCHIVE
+report_port=3306
+
+

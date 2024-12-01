@@ -1,0 +1,12 @@
+stages:
+  - build
+
+build_job:
+  stage: build
+  image: harbor.exayun.org/public/docker:20.10.7
+  script:
+    - IMG=harbor.exayun.org/c-base/devops_release:1.0.0
+    - docker login -u appc1 -p yhc harbor.exayun.org
+    - docker build -t $IMG --build-arg PROJECT_NAME=$CI_PROJECT_NAME -f Dockerfile .
+    - docker push $IMG
+    - echo "test ci tag"

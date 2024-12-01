@@ -1,0 +1,143 @@
+{
+  "id": "{{service.name}}",
+  "cpus": 1.0,
+  "mem": 1024,
+  "instances": 1,
+  "user": "{{service.user}}",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*); export JAVA_HOME=${JAVA_HOME%%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError\" && ./bootstrap -resolve=false -template=true && ./operator-scheduler/bin/mysql ./operator-scheduler/svc.yml",
+  "labels": {
+    "DCOS_COMMONS_API_VERSION": "v1",
+    "DCOS_COMMONS_UNINSTALL": "true",
+    "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}",
+    "MARATHON_SINGLE_INSTANCE_APP": "true",
+    "DCOS_SERVICE_NAME": "{{service.name}}",
+    "DCOS_SERVICE_PORT_INDEX": "0",
+    "DCOS_SERVICE_SCHEME": "http"
+  },
+  {{#service.service_account_secret}}
+  "secrets": {
+    "serviceCredential": {
+      "source": "{{service.service_account_secret}}"
+    }
+  },
+  {{/service.service_account_secret}}
+  "env": {
+    "PACKAGE_NAME": "{{package-name}}",
+    "PACKAGE_VERSION": "5.0.5-2",
+    "PACKAGE_BUILD_TIME_EPOCH_MS": "1552562293172",
+    "PACKAGE_BUILD_TIME_STR": "Thu Mar 14 2019 11:18:13 +0000",
+    "FRAMEWORK_NAME": "{{service.name}}",
+    "SLEEP_DURATION": "{{service.sleep}}",
+    "FRAMEWORK_USER": "{{service.user}}",
+    "FRAMEWORK_PRINCIPAL": "{{service.service_account}}",
+    "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
+    "MESOS_API_VERSION": "V1",
+
+    {{#service.virtual_network_enabled}}
+    "ENABLE_VIRTUAL_NETWORK": "yes",
+    "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
+    "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
+    {{/service.virtual_network_enabled}}
+
+    {{#service.service_account_secret}}
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
+    "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
+    "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
+    {{/service.service_account_secret}}
+
+    "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
+    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
+    "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
+    "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
+    "MYSQL_SHELL_URI": "{{resource.assets.uris.mysql-shell-uri}}",
+    "MYSQL_INIT_URI": "{{resource.assets.uris.mysql-init-uri}}",
+    "ROUTER_INIT_URI": "{{resource.assets.uris.router-init-uri}}",
+    "DEMO_SQL_URI": "{{resource.assets.uris.demo-sql-uri}}",
+    "MYSQL_ROUTER_URI": "{{resource.assets.uris.mysql-router-uri}}",
+    "MYSQL_CNF_URI":"{{resource.assets.uris.mysql-cnf-uri}}",
+    "MYSQL_XTRABACKUP_URI": "{{resource.assets.uris.mysql-xtrabackup-tar-gz}}",
+    "MYSQL_XTRABACKUP_SHELL_URI": "{{resource.assets.uris.mysql-xtrabackup-shell-uri}}",
+    "MYSQL_MYSQLDUMP_SHELL_URI": "{{resource.assets.uris.mysql-mysqldump-shell-uri}}",
+    "REJOIN_SHELL_URI": "{{resource.assets.uris.rejoin-shell-uri}}",
+    "CRONYUM_URI": "{{resource.assets.uris.cronyum-tar-gz}}",
+    "MYSQL_IMAGE": "{{resource.assets.container.docker.mysql_cluster}}",
+    "EXPORTER_IMAGE": "{{resource.assets.container.docker.mysql_exporter}}",
+
+    "NODE_COUNT": "{{mysql.common.count}}",
+    "NODE_CPUS": "{{mysql.common.cpus}}",
+    "NODE_MEM": "{{mysql.common.memory}}",
+    "NODE_DISK": "{{mysql.common.disk}}",
+    "NODE_DISK_TYPE": "{{mysql.common.disk_type}}",
+    "NODE_PLACEMENT": "{{mysql.common.placement}}",
+
+    "ROUTER_CPUS": "{{router.cpus}}",
+    "ROUTER_MEM": "{{router.memory}}",
+    "ROUTER_CLUSTERNAME": "{{router.clustername}}",
+    "ROUTER_PLACEMENT": "{{router.placement}}",
+
+    "BACKUP_CPUS": "{{backup.cpus}}",
+    "BACKUP_MEM": "{{backup.memory}}",
+    "BACKUP_DATABASENAME": "{{backup.databasename}}",
+
+    "BACKUP_RESTORE_CPUS": "{{mysql.backup_restore.cpus}}",
+    "BACKUP_RESTORE_MEM": "{{mysql.backup_restore.memory}}",
+    "STHREE_COMPATIBLE_URI": "{{mysql.backup_restore.endpoint}}",
+    "BACKUP_STORE_SERVICENAME": "{{mysql.backup_restore.servicename}}",
+    "ACCESS_KEY_ID": "{{mysql.backup_restore.s3_username}}",
+    "SECRET_ACCESS_KEY": "{{mysql.backup_restore.s3_password}}",
+    "BACKUP_DISK_TYPE": "{{mysql.backup_restore.backup_disk_type}}",
+    "BACKUP_NODE_DISK": "{{mysql.backup_restore.backup_disk}}",
+    "RESTORE_DISK_TYPE": "{{mysql.backup_restore.restore_disk_type}}",
+    "RESTORE_NODE_DISK": "{{mysql.backup_restore.restore_disk}}",
+    "BACKUP_FULL_FROM": "yymmddhhmmss-full",
+    "RESTORE_TO": "yymmddhhmmss-inc",
+
+
+    "MYSQL_INNODB_BUFFER_POOL_SIZE_RATIO": "{{mysql.server.innodb_buffer_pool_size_ratio}}",
+    "MYSQL_ROOT_PASSWORD": "{{mysql.server.root_password}}",
+    "MYSQL_CHAR_SET_SERVER": "{{mysql.server.character_set_server}}",
+    "MYSQL_MAX_CONNECTIONS": "{{mysql.server.max_connections}}",
+    "MYSQL_MAX_USER_CONNECTIONS": "{{mysql.server.max_user_connections}}",
+    "MYSQL_TIME_HOUR": "{{mysql.server.time_hour}}",
+    "MYSQL_EXPIRE_LOGS_DAYS": "{{mysql.server.expire_logs_days}}",
+    "MYSQL_TIMEOUT": "{{mysql.server.timeout}}",
+    "MYSQL_CONNECT_ERRORS": "{{mysql.server.max_connect_errors}}",
+
+
+    "EXPORTER_ENABLED": "{{exporter.is_enabled}}",
+    "EXPORTER_CPUS": "{{exporter.cpus}}",
+    "EXPORTER_MEM": "{{exporter.memory}}",
+    "EXPORTER_PLACEMENT": "{{exporter.placement}}"
+
+  },
+  "uris": [
+    "{{resource.assets.uris.bootstrap-zip}}",
+    "{{resource.assets.uris.jre-tar-gz}}",
+    "{{resource.assets.uris.scheduler-zip}}",
+    "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  ],
+  "upgradeStrategy":{
+    "minimumHealthCapacity": 0,
+    "maximumOverCapacity": 0
+  },
+  "healthChecks": [
+    {
+      "protocol": "MESOS_HTTP",
+      "path": "/v1/health",
+      "gracePeriodSeconds": 900,
+      "intervalSeconds": 30,
+      "portIndex": 0,
+      "timeoutSeconds": 30,
+      "maxConsecutiveFailures": 0
+    }
+  ],
+    "portDefinitions": [
+    {
+      "port": 0,
+      "protocol": "tcp",
+      "name": "api",
+      "labels": { "VIP_0": "/api.{{service.name}}:3306" }
+    }
+  ]
+}

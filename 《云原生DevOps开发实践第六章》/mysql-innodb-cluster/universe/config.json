@@ -1,0 +1,350 @@
+{
+  "type": "object",
+  "properties": {
+    "service": {
+      "type": "object",
+      "description": "DC/OS service configuration properties",
+      "properties": {
+        "name": {
+          "description": "The name of the service instance,Limited by the string of report_host 60 in my.cnf, it is recommended to configure the name not to be too long",
+          "type": "string",
+          "default": "innodb-cluster"
+        },
+        "user": {
+          "description": "The user that the service will run as.",
+          "type": "string",
+          "default": "root"
+        },
+        "service_account": {
+          "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
+          "type": "string",
+          "default": ""
+        },
+        "service_account_secret": {
+          "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
+          "type": "string",
+          "default": ""
+        },
+        "virtual_network_enabled": {
+          "description": "Enable virtual networking",
+          "type": "boolean",
+          "default": true
+        },
+        "virtual_network_name": {
+          "description": "The name of the virtual network to join",
+          "type": "string",
+          "default": "dcos"
+        },
+        "virtual_network_plugin_labels": {
+          "description": "Labels to pass to the virtual network plugin. Comma-separated key:value pairs. For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
+          "type": "string",
+          "default": ""
+        },
+        "log_level": {
+          "description": "The log level for the DC/OS service.",
+          "type": "string",
+          "enum": [
+            "OFF",
+            "FATAL",
+            "ERROR",
+            "WARN",
+            "INFO",
+            "DEBUG",
+            "TRACE",
+            "ALL"
+          ],
+          "default": "INFO"
+        },
+        "sleep": {
+          "description": "The sleep duration in seconds before tasks exit.",
+          "type": "number",
+          "default": 1000
+        }
+      },
+      "required": [
+        "name",
+        "sleep",
+        "user"
+      ]
+    },
+
+    "mysql": {
+      "type": "object",
+      "description": "MySQL cluster configuration properties",
+      "properties": {
+        "common": {
+          "type": "object",
+          "options": {
+            "collapsed": false
+          },
+          "properties": {
+            "placement": {
+              "description": "Placement constraints for nodes. Example: [[\"hostname\", \"UNIQUE\"]]",
+              "type": "string",
+              "default": "[[\"hostname\", \"UNIQUE\"]]",
+              "media": {
+                "type": "application/x-zone-constraints+json"
+              }
+            },
+            "count": {
+              "description": "Number of MySQL pods to run",
+              "type": "integer",
+              "default": 3,
+              "minimum": 3
+            },
+            "cpus": {
+              "description": "MySQL pod CPU requirements",
+              "type": "number",
+              "default": 0.2,
+              "minimum": 0.2
+            },
+            "memory": {
+              "description": "MySQL pod memory requirements in MB",
+              "type": "integer",
+              "default": 256,
+              "minimum": 256,
+              "multipleOf": 128
+            },
+            "disk": {
+              "description": "MySQL pod persistent volume requirements in MB",
+              "type": "integer",
+              "default": 1024,
+              "minimum": 512,
+              "multipleOf": 512
+            },
+            "disk_type": {
+              "description": "Mount volumes require preconfiguration in DC/OS",
+              "enum": [
+                "ROOT",
+                "MOUNT"
+              ],
+              "default": "ROOT"
+            }
+          },
+          "required": [
+            "count",
+            "cpus",
+            "memory",
+            "disk",
+            "disk_type"
+          ]
+        },
+
+        "server": {
+          "type": "object",
+          "options": {
+            "collapsed": false
+          },
+          "properties": {
+            "root_password": {
+              "description": "Specifies the password that will be set for the MySQL root user.",
+              "type": "string",
+              "minLength": 6,
+              "default": "123456"
+            },
+            "max_connections": {
+              "description": "MySQL max_connections option",
+              "type": "integer",
+              "minimum": 151,
+              "maximum": 100000,
+              "default": 2000
+            },
+            "max_user_connections": {
+              "description": "MySQL user max_connections option",
+              "type": "integer",
+              "minimum": 10,
+              "maximum": 200,
+              "default": 10
+            },
+            "innodb_buffer_pool_size_ratio": {
+              "description": "The innodb buffer size is built to be 50% to 75% of the Pod memory, too large or too small is of little significance, please refer to the official document https://dev.mysql.com/doc/refman/8.0/en/innodb-buffer-pool -resize.html",
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 0.75,
+              "default": 0.5
+            },
+            "time_hour": {
+              "description": "Mysql time zone configuration, corrected by cst time",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12,
+              "default": 8
+            },
+            "expire_logs_days": {
+              "description": "mysql log expire time",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 30,
+              "default": 7
+            },
+            "timeout": {
+              "description": "mysql client connect timeout",
+              "type": "integer",
+              "minimum": 600,
+              "maximum": 21600,
+              "default": 1200
+            },
+            "max_connect_errors": {
+            "description": "mysql max connect errors",
+            "type": "integer",
+            "minimum": 1000,
+            "maximum": 10000,
+            "default": 1000
+          },
+            "character_set_server": {
+              "description": "MySQL character_set_server option",
+              "type": "string",
+              "enum": [
+                "latin1",
+                "utf8",
+                "utf8mb4",
+                "gbk"
+              ],
+              "default": "latin1"
+            }
+          },
+          "required": [
+            "root_password"
+          ]
+        },
+        "backup_restore": {
+          "type": "object",
+          "properties": {
+            "backup_disk_type": {
+              "description": "backup Mount volumes require preconfiguration in DC/OS",
+              "enum": [
+                "ROOT",
+                "MOUNT"
+              ],
+              "default": "ROOT"
+            },
+            "backup_disk": {
+              "description": "mysql pod persistent volume requirements in MB",
+              "type": "integer",
+              "default": 1024,
+              "minimum": 256,
+              "multipleOf": 128
+            }
+          }
+        }
+      },
+      "required": [
+        "common",
+        "server"
+      ]
+    },
+
+    "exporter": {
+      "type": "object",
+      "description": "MySQL exporter configuration properties",
+      "properties": {
+        "is_enabled": {
+          "description": "Enable or disable exporter pods",
+          "type": "boolean",
+          "default": false
+        },
+        "placement": {
+          "description": "Placement constraints for nodes. Example: [[\"hostname\", \"UNIQUE\"]]",
+          "type": "string",
+          "default": "[]",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
+        },
+        "cpus": {
+          "description": "mysql pod CPU requirements",
+          "type": "number",
+          "default": 0.1,
+          "minimum": 0.1
+        },
+        "memory": {
+          "description": "mysql pod memory requirements in MB",
+          "type": "integer",
+          "default": 256,
+          "minimum": 256,
+          "multipleOf": 128
+        }
+      },
+      "oneof": [
+        {
+          "properties": {
+            "is_enabled": {
+              "boolean": true
+            }
+          },
+          "required": [
+            "placement",
+            "cpus",
+            "memory"
+          ]
+        }
+      ],
+      "required": [
+        "is_enabled"
+      ]
+    },
+
+    "router": {
+      "type": "object",
+      "description": "Router exporter configuration properties",
+      "properties": {
+        "placement": {
+          "description": "Placement constraints for nodes. Example: [[\"hostname\", \"UNIQUE\"]]",
+          "type": "string",
+          "default": "[[\"hostname\", \"UNIQUE\"]]",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
+        },
+        "cpus": {
+          "description": "mysql pod CPU requirements",
+          "type": "number",
+          "default": 0.5,
+          "minimum": 0.5
+        },
+        "memory": {
+          "description": "mysql pod memory requirements in MB",
+          "type": "integer",
+          "default": 512,
+          "minimum": 512,
+          "multipleOf": 512
+        },
+        "clustername": {
+          "description": "The Name of MySQL InnoDB Cluster",
+          "type": "string",
+          "default": "prodCluster"
+        }
+      },
+      "required": [
+        "cpus",
+        "memory",
+        "clustername"
+      ]
+    },
+
+    "backup": {
+      "type": "object",
+      "description": "backup configuration properties",
+      "properties": {
+        "cpus": {
+          "description": "CPU requirements of MySQL backup/restore tasks",
+          "type": "number",
+          "default": 0.1,
+          "minimum": 0.1
+        },
+        "memory": {
+          "description": "Memory requirements of MySQL backup/restore tasks in MB",
+          "type": "integer",
+          "default": 128,
+          "minimum": 128,
+          "multipleOf": 128
+        },
+        "databasename": {
+          "description": "The Name of MySQL InnoDB Cluster",
+          "type": "string",
+          "default": "all"
+        }
+      }
+    }
+  }
+}

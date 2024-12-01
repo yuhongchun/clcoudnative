@@ -1,0 +1,250 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  mysql:
+    count: {{NODE_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{MYSQL_SHELL_URI}}
+      - {{DEMO_SQL_URI}}
+      - {{MYSQL_XTRABACKUP_URI}}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 65535
+        hard: 65535
+    image: {{MYSQL_IMAGE}}
+    placement: '{{{NODE_PLACEMENT}}}'
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    volumes:
+      mysql-data:
+        path: "MYSQL_DATA"
+        type: {{NODE_DISK_TYPE}}
+        size: {{NODE_DISK}}
+      mysqlbp-data:
+        path: "BKP_DATA"
+        type: {{BACKUP_DISK_TYPE}}
+        size: {{BACKUP_NODE_DISK}}
+    resource-sets:
+      server:
+        cpus: {{NODE_CPUS}}
+        memory: {{NODE_MEM}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: |
+          #export PATH=${MESOS_SANDBOX}/percona-xtrabackup-2.4.21-Linux-x86_64.glibc2.12/bin:$PATH
+          chmod +x ./config-templates/mysql-init.sh
+          ./config-templates/mysql-init.sh
+        readiness-check:
+          cmd: |
+            v_check=$(mysql -B  -uroot -p"${MYSQL_ROOT_PASSWORD}" -h 127.0.0.1 --disable-column-names -e "select 1")
+            if [ $v_check = 1 ]; then
+              echo "mysql is ready"
+              exit 0
+            else
+              echo "mysql is not yet ready"
+              exit 1
+            fi
+          interval: 35
+          delay: 100
+          timeout: 120
+        resource-set: server
+        env:
+          MYSQL_ROOT_PASSWORD: {{MYSQL_ROOT_PASSWORD}}
+          NODE_COUNT: {{NODE_COUNT}}
+          NODE_MEM: {{NODE_MEM}}
+          MYSQL_CHAR_SET_SERVER: {{MYSQL_CHAR_SET_SERVER}}
+          MYSQL_INNODB_BUFFER_POOL_SIZE_RATIO: {{MYSQL_INNODB_BUFFER_POOL_SIZE_RATIO}}
+          MYSQL_MAX_CONNECTIONS: {{MYSQL_MAX_CONNECTIONS}}
+          MYSQL_MAX_USER_CONNECTIONS: {{MYSQL_MAX_USER_CONNECTIONS}}
+          MYSQL_TIME_HOUR: {{MYSQL_TIME_HOUR}}
+          MYSQL_EXPIRE_LOGS_DAYS: {{MYSQL_EXPIRE_LOGS_DAYS}}
+          MYSQL_TIMEOUT: {{MYSQL_TIMEOUT}}
+          MYSQL_CONNECT_ERRORS: {{MYSQL_CONNECT_ERRORS}}
+        configs:
+          my.cnf:
+            template: my.cnf
+            dest: my.cnf
+          mysql-init.sh:
+            template: mysql-init.sh
+            dest: mysql-init.sh
+          rejoin-instance.sh:
+            template: rejoin-instance.sh
+            dest: rejoin-instance.sh
+          backup-mysqldump.sh:
+            template: backup.sh
+            dest: backup.sh
+          backup-xtrabackup.sh:
+            template: backupself.sh
+            dest: backupself.sh
+
+
+  backup:
+    count: 1
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    volumes:
+      mysqlbp-data:
+        path: "BKP_DATA"
+        type: {{NODE_DISK_TYPE}}
+        size: {{NODE_DISK}}
+    image: {{MYSQL_IMAGE}}
+    resource-sets:
+      side-cars:
+        cpus: 0.1
+        memory: 128
+    tasks:
+      localbackup:
+        goal: ONCE
+        cmd: |
+          chmod +x ./config-templates/backup-xtrabackup.sh
+          ./config-templates/backup-xtrabackup.sh
+          #tail -f /dev/null
+        resource-set: side-cars
+        env:
+          MYSQL_ROOT_PASSWORD: {{MYSQL_ROOT_PASSWORD}}
+          BACKUP_DATABASENAME: {{BACKUP_DATABASENAME}}
+        configs:
+          backup-mysqdump.sh:
+            template: backup.sh
+            dest: backup.sh
+          backup-xtrabackup.sh:
+            template: backupself.sh
+            dest: backupself.sh
+
+{{#EXPORTER_ENABLED}}
+  exporter:
+    count: 3
+    uris:
+      - {{BOOTSTRAP_URI}}
+    image: {{EXPORTER_IMAGE}}
+    placement: '{{{EXPORTER_PLACEMENT}}}'
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    resource-sets:
+      exporter:
+        cpus: {{EXPORTER_CPUS}}
+        memory: {{EXPORTER_MEM}}
+        ports:
+          exporter:
+            port: 9104
+            advertise: true
+            vip:
+              prefix: exporter
+              port: 9104
+    tasks:
+      daemon:
+        goal: RUNNING
+        cmd: |
+          ./bootstrap
+          ln -sf /usr/share/zoneinfo/${TZ} /etc/localtime
+          export DATA_SOURCE_NAME="root:${MYSQL_ROOT_PASSWORD}@(mysql-${POD_INSTANCE_INDEX}-node.${FRAMEWORK_NAME}.autoip.dcos.thisdcos.directory:3306)/"
+          /bin/mysqld_exporter
+        resource-set: exporter
+        env:
+          MYSQL_ROOT_PASSWORD: {{MYSQL_ROOT_PASSWORD}}
+{{/EXPORTER_ENABLED}}
+
+
+  router:
+    count: 2
+    uris:
+      - {{BOOTSTRAP_URI}}
+      - {{MYSQL_ROUTER_URI}}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: 12800
+        hard: 12800
+    image: {{MYSQL_IMAGE}}
+    placement: '{{{ROUTER_PLACEMENT}}}'
+    {{#ENABLE_VIRTUAL_NETWORK}}
+    networks:
+      {{VIRTUAL_NETWORK_NAME}}:
+        labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
+    {{/ENABLE_VIRTUAL_NETWORK}}
+    resource-sets:
+      mysql-router:
+        cpus: {{ROUTER_CPUS}}
+        memory: {{ROUTER_MEM}}
+        ports:
+          master:
+            port: 6446
+            advertise: true
+            vip:
+              prefix: master
+              port: 6446
+          slave:
+            port: 6447
+            advertise: true
+            vip:
+              prefix: slave
+              port: 6447
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: |
+          chmod +x ./config-templates/router-init.sh
+          ./config-templates/router-init.sh
+        readiness-check:
+          cmd: |
+            mysqladmin -uroot -p123456  -h127.0.0.1 -P6446 ping
+            if [ $? = 0 ]; then
+              echo "mysql-router is ready"
+              exit 0
+            else
+              echo "mysql-router is not yet ready"
+              exit 1
+            fi
+          interval: 45
+          delay: 10
+          timeout: 60
+        resource-set: mysql-router
+        env:
+          MYSQL_ROOT_PASSWORD: {{MYSQL_ROOT_PASSWORD}}
+          CLUSTERNAME: {{ROUTER_CLUSTERNAME}}
+        configs:
+          router-init.sh:
+            template: router-init.sh
+            dest: router-init.sh
+
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      mysql-deploy:
+        strategy: serial
+        pod: mysql
+        steps:
+          - default: [[node]]
+{{#EXPORTER_ENABLED}}
+      exporter-deploy:
+        strategy: parallel
+        pod: exporter
+        steps:
+          - default: [[daemon]]
+{{/EXPORTER_ENABLED}}
+      router-deploy:
+        strategy: serial
+        pod: router
+        steps:
+          - default: [[node]]
+  localbackup:
+    strategy: serial
+    phases:
+      node:
+        strategy: serial
+        pod: backup
+        steps:
+          - default: [[localbackup]]
