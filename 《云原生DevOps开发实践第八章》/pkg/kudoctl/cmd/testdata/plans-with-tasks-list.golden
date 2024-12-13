@@ -1,0 +1,16 @@
+plans
+├── deploy (serial)
+│   └── [phase]  zookeeper (parallel)
+│       └── [step]  everything
+│           ├── [apply]  infra
+│           │   ├── services.yaml
+│           │   └── pdb.yaml
+│           └── [apply]  app
+│               ├── statefulset.yaml
+│               └── subfolder/statefulset2.yaml
+└── validation (serial)
+    └── [phase]  connection (parallel)
+        └── [step]  connection
+            └── [apply]  validation
+                └── validation.yaml
+

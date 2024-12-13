@@ -1,0 +1,11 @@
+apiVersion: kudo.dev/v1beta1
+kind: Instance
+metadata:
+  labels:
+    kudo.dev/operator: zookeeper
+  name: zk2
+spec:
+  operatorVersion:
+    name: zookeeper-3.4.10-0.1.0
+    type: OperatorVersions
+  name: "zookeeper-0.1.0"
